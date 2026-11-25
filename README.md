@@ -70,6 +70,8 @@ One Markdown report, including:
 - An endpoint table: every route with its authentication, authorization, and rate limit status, with no sampling
 - A check ledger: one row per check, with the searches and commands behind each result. "No issue found" without evidence counts as not checked
 - A final self-check that sends the audit back to fill any gap before the verdict
+- Independent verification, where the tool supports sub-agents: a separate agent tries to disprove every Critical and High finding and re-checks a sample of "no issue found" results
+- On a re-run, a comparison with the previous report: which findings were fixed, which are still open, and what is new
 - Application coverage and known limitations
 - Security findings with severity, code references, and impact
 - A full state machine inventory, with transition tables and Mermaid diagrams
@@ -174,6 +176,10 @@ Issues and pull requests are welcome, especially checks that are missing for a s
 **Sonuç:** Yayın kararı (hazır, koşullu hazır, hazır değil), yayını engelleyen bulgular, kod referansları ve önceliklendirilmiş bir yol haritası içeren tek bir Markdown raporu. Her bulgu sabit bir ciddiyet ölçütüyle (Critical, High, Medium, Low) ve ayrı bir güven seviyesiyle işaretlenir. Secret değerleri raporda maskelenir.
 
 **Kapsam kontrolü:** Üstünkörü taramayı ve atlanan kısımları görünür kılmak için skill şunları zorunlu tutar: komutla çıkarılan dosya envanteri (her bölüm "incelendi" ya da "incelenmedi, nedeni" ile işaretlenir), örnekleme yapılmadan her route için kimlik doğrulama, yetkilendirme ve rate limit tablosu, kritik konular için tüm kodda arama ve sonuç sayıları, her kontrol için kanıtıyla bir satır (kanıtsız "sorun yok" kabul edilmez) ve rapordan önce eksikleri tamamlayan bir öz denetim.
+
+**Bağımsız doğrulama:** Araç alt ajan destekliyorsa, ayrı bir ajan Critical ve High bulguları çürütmeye çalışır ve "sorun yok" denen kontrollerin bir kısmını yeniden kontrol eder. Destek yoksa bu raporda açıkça belirtilir.
+
+**Tekrar çalıştırma:** Önceki rapor varsa okunur; eski bulgular "düzeltildi", "hâlâ açık" ya da "değişti" olarak işaretlenir, yeni bulgular ayrıca listelenir. Eski sonuçlar kanıt sayılmaz, hepsi güncel koda göre yeniden kontrol edilir.
 
 **Hızlı mod:** "Hızlı yayın öncesi kontrol yap" dersen yalnızca güvenlik aşaması çalışır, state machine analizi atlanır.
 

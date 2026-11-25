@@ -23,7 +23,7 @@ Examine the entire codebase systematically. Do not limit the analysis to specifi
 
 A large codebase can exceed what you can hold in context at once. Do not let the end of the audit get weaker than the start.
 
-- If your environment allows writing files, write findings to a report file as you go, instead of keeping them all in memory until the end. Use `before-sunrise-report.md` in the project root unless the user names another location. This report file is the only file you may create or change; never edit application files.
+- If your environment allows writing files, write findings to a report file as you go, instead of keeping them all in memory until the end. Use `before-sunrise-report.md` in the project root unless the user names another location. If a report already exists there, read it completely first (see Previous Reports) before writing over it. This report file is the only file you may create or change; never edit application files.
 - Work through the codebase area by area, and record each area as covered in the report before moving to the next.
 - If you cannot finish, say exactly which areas were covered and which were not.
 
@@ -79,6 +79,26 @@ Before writing the final report:
 2. Find every row marked **Not checked** or without evidence, go back, and complete it.
 3. Find every inventory group marked **Not analyzed**, and analyze it or state why it cannot be analyzed.
 4. If anything still cannot be completed, list it in the Executive Summary as a coverage gap. A release verdict of **ready** is not allowed while a check that could block the release is **Not checked**.
+
+## Independent Verification
+
+An agent checking its own work tends to confirm it. If your tool can start a separate agent (a sub-agent or task tool), run this step after the self-check and before the final report. Give the verifier only the code locations and claims below, not your reasoning or conclusions. The verifier is read-only and returns its results to you; only you write the report.
+
+1. **Try to disprove every Critical and High finding.** For each one, the verifier reads the cited code and looks for anything that prevents the issue: a guard, middleware, policy, configuration, or framework default. Record each result as **Confirmed**, **Downgraded** (with the new severity and why), or **Rejected** (with the code that disproves it).
+2. **Re-check a sample of "No issue found" rows.** The verifier independently re-checks at least 10 rows, or all of them if there are fewer, chosen from the ones that could block the release: authentication, authorization, tenant isolation, secrets, payments, and AI spending limits. Include rows from the endpoint inventory. Any issue it finds is a new finding, and the original ledger row is marked **Corrected by verification**.
+3. If several re-checked rows turn out wrong, the original pass was not reliable for that area: re-check the rest of that area before giving a verdict.
+
+Report the verification results in their own section. If your tool cannot start a separate agent, say so in the report: "Independent verification not run: no sub-agent support." Do not pretend to verify independently in the same context.
+
+## Previous Reports
+
+Before starting, look for an earlier report at the report location (`before-sunrise-report.md` in the project root, or the location the user names). If one exists, read it completely before writing anything, because this run will replace it.
+
+- Use it to compare, never as evidence. Re-check every earlier finding against the current code; do not carry a finding or a "No issue found" result forward without checking it again.
+- In the new report, classify every earlier finding as **Fixed** (with the code that fixes it), **Still open**, or **Changed** (different severity or location), and list new findings separately.
+- Note whether the earlier report covered the same scope and mode. Results from a quick audit or a partial run say nothing about what it did not check.
+
+If no earlier report exists, say so in the report.
 
 # Phase 1: Security and Release Readiness
 
@@ -334,6 +354,14 @@ Identify missing or insufficient tests for important transitions, invalid transi
 ### K. Check Ledger
 
 The full ledger described in Coverage and Evidence, with a summary line: how many checks found an issue, found no issue, do not apply, and were not checked.
+
+### L. Independent Verification
+
+For each Critical and High finding: Confirmed, Downgraded, or Rejected, with the reason. For each re-checked "No issue found" row: whether it held. Or the statement that independent verification was not run, and why.
+
+### M. Changes Since the Previous Report
+
+Every earlier finding marked Fixed, Still open, or Changed, and the new findings listed separately. Or the statement that no earlier report was found.
 
 # Important Constraints
 

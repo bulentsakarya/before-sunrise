@@ -115,7 +115,7 @@ Apply this section to every audit and to the whole codebase, including vendored 
 
 ## 1.10 AI and LLM Integrations
 
-Apply this section when the system calls a language model or another AI service.
+Apply this section to every audit. Search the whole codebase for calls to language models or other AI services, such as provider SDKs, HTTP calls to AI APIs, AI gateways, embeddings, and vector stores. Do not wait to be told the system uses AI. If you find none, state in the report that this section does not apply and that no AI usage was found.
 
 - Check for spending limits per user, tenant, and plan, and a global cap. Without them, one account can run up unlimited provider costs ("denial of wallet"). Check that limits are enforced on the server before the call, not counted after it.
 - Check whether loops, retries, agents, or tool calls can multiply model calls without a bound.
@@ -127,7 +127,7 @@ Apply this section when the system calls a language model or another AI service.
 
 ## 1.11 Billing, Credits, and Quotas
 
-Apply this section when the system charges users, sells plans, or meters usage through credits or quotas.
+Apply this section to every audit. Search the whole codebase for payments, plans, subscriptions, credits, quotas, and usage metering, such as payment provider SDKs and packages, payment webhooks, and plan, price, coupon, credit, or usage fields. Do not wait to be told the system charges users. If you find none, state in the report that this section does not apply and that no billing or quota logic was found.
 
 - Check that plan limits and quotas are enforced on the server for every feature and endpoint they apply to, not only in the interface.
 - Check that credit deduction and usage counting are atomic, so concurrent requests cannot spend the same credit twice or overrun a quota.

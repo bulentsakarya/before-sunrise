@@ -40,6 +40,9 @@ Each of these is easy to miss and easy to find, if someone actually looks. This 
 | **Dependencies** | Known vulnerabilities, end-of-life runtimes, missing lock files |
 | **Operations** | Backups, migrations, queues, scheduled tasks, error reporting |
 | **Mobile and desktop** | Secure storage, release build settings, cleartext traffic, TLS validation, permissions, deep links |
+| **Third-party and purchased code** | Calls home to the vendor, obfuscated or encoded code, remote code loading, default admin accounts, hidden backdoors, reusable installers |
+| **AI and LLM integrations** | Spending limits per user and tenant, unbounded call loops, prompt injection, unescaped model output, leaked provider keys, cross-tenant leaks |
+| **Billing, credits, and quotas** | Server-side plan limits, atomic credit deduction, unlock only after verified payment, refunds and chargebacks, trial and coupon abuse |
 
 Checks that do not apply to your system are marked as such, not silently skipped.
 
@@ -62,6 +65,7 @@ One Markdown report, including:
 
 - A release verdict: **ready**, **ready with conditions**, or **not ready**
 - Every finding that blocks the release
+- A fixed severity scale (Critical, High, Medium, Low) and a separate confidence level for each finding, so reports from different tools can be compared
 - Application coverage and known limitations
 - Security findings with severity, code references, and impact
 - A full state machine inventory, with transition tables and Mermaid diagrams
@@ -72,7 +76,7 @@ Secret values are always masked in the report, so it stays safe to share with yo
 
 ## Principles
 
-- **Read-only.** No code, schema, configuration, or dependency changes.
+- **Read-only.** No code, schema, configuration, or dependency changes. The report file is the only thing it writes.
 - **Evidence only.** Findings reference real code locations. Nothing is invented.
 - **Honest about certainty.** Verified findings are separated from hypotheses.
 - **Honest about coverage.** Whatever could not be analyzed is stated in the report.
@@ -126,7 +130,17 @@ Run a pre-release audit on this project.
 Canlıya almadan önce bu sistemi kontrol et.
 ```
 
-Large codebases take a while. That is expected: the skill is designed not to stop after the first few findings.
+For a faster, security-only run that skips the state machine phase:
+
+```text
+Run a quick pre-release audit on this project.
+```
+
+```text
+Hızlı yayın öncesi kontrol yap, sadece güvenlik.
+```
+
+Large codebases take a while. That is expected: the skill is designed not to stop after the first few findings. Where the tool can write files, findings are written to `before-sunrise-report.md` in the project root as the audit goes, so the end of a long audit is as thorough as the start. This report is the only file the skill writes. It may describe weaknesses in detail, so think before committing it.
 
 ## Limitations
 
@@ -150,10 +164,14 @@ Issues and pull requests are welcome, especially checks that are missing for a s
 
 **İki aşamada çalışır:**
 
-1. **Güvenlik ve yayın hazırlığı:** Git geçmişi dahil sızmış secret'lar, dağıtılan paketlerin içine gömülü API key'ler, rate limit tanımları, yetkilendirme, girdi güvenliği, production ayarları, bağımlılıklar, mobil ve masaüstü kontrolleri.
+1. **Güvenlik ve yayın hazırlığı:** Git geçmişi dahil sızmış secret'lar, dağıtılan paketlerin içine gömülü API key'ler, rate limit tanımları, yetkilendirme, girdi güvenliği, production ayarları, bağımlılıklar, mobil ve masaüstü kontrolleri. Ayrıca satın alınmış kod (satıcıya veri gönderen çağrılar, şifrelenmiş kod, varsayılan admin hesapları, gizli arka kapılar), AI ve LLM entegrasyonları (kullanıcı başına harcama limiti, prompt injection, temizlenmemiş model çıktısı) ile faturalama ve kota kontrolleri (atomik kredi düşümü, doğrulanmış ödeme olmadan özellik açılmaması).
 2. **State machine analizi:** Status alanlarına, flag'lere, job'lara ve event'lere dağılmış tüm durum akışlarını bulur; korumasız geçişleri, çıkmaz akışları, race condition'ları ve tekrar işlenen event'leri raporlar.
 
-**Sonuç:** Yayın kararı (hazır, koşullu hazır, hazır değil), yayını engelleyen bulgular, kod referansları ve önceliklendirilmiş bir yol haritası içeren tek bir Markdown raporu. Secret değerleri raporda maskelenir.
+**Sonuç:** Yayın kararı (hazır, koşullu hazır, hazır değil), yayını engelleyen bulgular, kod referansları ve önceliklendirilmiş bir yol haritası içeren tek bir Markdown raporu. Her bulgu sabit bir ciddiyet ölçütüyle (Critical, High, Medium, Low) ve ayrı bir güven seviyesiyle işaretlenir. Secret değerleri raporda maskelenir.
+
+**Hızlı mod:** "Hızlı yayın öncesi kontrol yap" dersen yalnızca güvenlik aşaması çalışır, state machine analizi atlanır.
+
+**Büyük projeler:** Araç dosya yazabiliyorsa bulgular ilerledikçe proje kökündeki `before-sunrise-report.md` dosyasına yazılır. Skill'in yazdığı tek dosya budur.
 
 Her dil ve framework ile çalışır.
 

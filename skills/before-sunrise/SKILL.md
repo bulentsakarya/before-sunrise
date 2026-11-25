@@ -1,6 +1,6 @@
 ---
 name: "before-sunrise"
-description: "Use before releasing a system to production: read-only audit of security (secrets, rate limits, access control) and state machines. Triggers: pre-release audit, production readiness, yayın öncesi kontrol, canlıya almadan önce."
+description: "Use before releasing a system to production: read-only audit of security (secrets, rate limits, access control, AI usage, billing), purchased or third-party code, and state machines. Triggers: pre-release audit, production readiness, yayın öncesi kontrol, canlıya almadan önce."
 ---
 
 # Before Sunrise: Pre-Release Audit
@@ -13,6 +13,19 @@ The audit has two phases, reported together:
 - Phase 2: State machine discovery and analysis
 
 Examine the entire codebase systematically. Do not limit the analysis to specific modules, entities, workflows, or business processes.
+
+## Modes
+
+- **Full audit (default):** both phases.
+- **Quick audit:** Phase 1 only. Use it only when the user asks for a quick, security-only, or Phase 1 audit. State in the report that Phase 2 was not run.
+
+## Working on Large Codebases
+
+A large codebase can exceed what you can hold in context at once. Do not let the end of the audit get weaker than the start.
+
+- If your environment allows writing files, write findings to a report file as you go, instead of keeping them all in memory until the end. Use `before-sunrise-report.md` in the project root unless the user names another location. This report file is the only file you may create or change; never edit application files.
+- Work through the codebase area by area, and record each area as covered in the report before moving to the next.
+- If you cannot finish, say exactly which areas were covered and which were not.
 
 # Phase 1: Security and Release Readiness
 
@@ -88,6 +101,40 @@ Apply this section only when the system includes a mobile or desktop client.
 - Check whether requested permissions are all actually needed.
 - Check that deep links, custom URL schemes, and exported components validate their input and cannot trigger sensitive actions unauthenticated.
 - Check whether older client versions keep working or can be forced to update when the API changes.
+
+## 1.9 Third-Party and Purchased Code
+
+Apply this section when the system is, or includes, code bought from a marketplace (such as CodeCanyon), a template, a starter kit, or code from an unknown author. Also apply it to vendored code copied into the repository.
+
+- Search for outbound calls to the author's or vendor's servers: license checks, update checks, telemetry, or analytics. Report what data each call sends and whether it can be turned off. A call that sends user data, configuration, or secrets is critical.
+- Search for obfuscated or encoded code: `eval`, dynamic code execution, base64 or hex decoding followed by execution, packed or minified server-side code, and encrypted source files.
+- Check for remote code or configuration loading: code that downloads and runs scripts, plugins, or settings from an external URL at runtime.
+- Check seed data, installers, and migrations for default admin users, demo accounts, known passwords, and test API keys that would reach production.
+- Check for hidden routes, backdoor parameters, master passwords, or authentication bypasses that are not part of the documented features.
+- Check whether the installer or setup wizard can be run again after installation, and whether it is removed or locked.
+
+## 1.10 AI and LLM Integrations
+
+Apply this section when the system calls a language model or another AI service.
+
+- Check for spending limits per user, tenant, and plan, and a global cap. Without them, one account can run up unlimited provider costs ("denial of wallet"). Check that limits are enforced on the server before the call, not counted after it.
+- Check whether loops, retries, agents, or tool calls can multiply model calls without a bound.
+- Check for prompt injection: whether user input, uploaded files, fetched web pages, emails, or other external content can override system instructions or trigger tools and actions the user is not allowed to perform.
+- Check whether model output is treated as untrusted: escaped before rendering as HTML or Markdown, validated before use in queries, commands, file paths, or URLs.
+- Check that AI provider keys stay on the server and never reach a browser bundle, mobile app, or desktop binary.
+- Check whether prompts, model inputs, and outputs that contain personal or confidential data are logged, and where.
+- Check whether one tenant's data can leak into another tenant's prompts through shared context, caches, embeddings, or vector stores.
+
+## 1.11 Billing, Credits, and Quotas
+
+Apply this section when the system charges users, sells plans, or meters usage through credits or quotas.
+
+- Check that plan limits and quotas are enforced on the server for every feature and endpoint they apply to, not only in the interface.
+- Check that credit deduction and usage counting are atomic, so concurrent requests cannot spend the same credit twice or overrun a quota.
+- Check that paid features are unlocked only after the payment is confirmed by a verified provider webhook or server-side check, not by a client redirect or a value sent from the client.
+- Check that payment webhooks are idempotent, and that failed payments, refunds, chargebacks, cancellations, and downgrades remove access correctly.
+- Check whether trial, coupon, and referral logic can be repeated or abused, for example by creating new accounts.
+- Check that prices and amounts are calculated on the server and cannot be changed by the client.
 
 # Phase 2: State Machine Discovery and Analysis
 
@@ -189,7 +236,7 @@ All discovered modules and subsystems, including which areas were analyzed and a
 
 ### C. Security and Release Readiness Findings
 
-Results for each Phase 1 area, with severity, code references, impact, and recommended solutions. Mask all secret values.
+Results for each Phase 1 area, with severity and confidence (see Severity Scale), code references, impact, and recommended solutions. Mask all secret values.
 
 ### D. State Machine Inventory
 
@@ -235,7 +282,7 @@ Identify missing or insufficient tests for important transitions, invalid transi
 
 - Analyze the entire application, not a predefined subset of modules.
 - Do not stop after discovering the first few findings or state machines.
-- Do not modify, refactor, or generate application code.
+- Do not modify, refactor, or generate application code. The report file is the only file you may write.
 - Do not modify database schemas or configuration.
 - Do not introduce new dependencies.
 - Do not send secrets or code to external services.
@@ -248,3 +295,14 @@ Identify missing or insufficient tests for important transitions, invalid transi
 - Continue systematically until all discoverable modules and subsystems have been examined.
 
 The objective is to create a complete, evidence-based picture of the system's release readiness and identify genuine weaknesses without making unnecessary changes.
+
+# Severity Scale
+
+Use these levels for every finding in both phases, so reports stay comparable across tools and runs:
+
+- **Critical:** Exploitable now, or already exposed, with direct impact: leaked secrets, authentication bypass, access to other users' or tenants' data, remote code execution, unbounded spending, or paid access without payment. Blocks the release.
+- **High:** Likely to cause a security incident, data loss, or financial loss under realistic conditions, but needs a specific situation or additional step. Blocks the release unless the user explicitly accepts the risk.
+- **Medium:** A real weakness with limited impact or a hard path to exploit, or a gap that will cause incidents as the system grows. Fix soon after release.
+- **Low:** Hardening, best practice, or a minor inconsistency with little direct impact.
+
+Report confidence separately from severity: **Confirmed** (seen in code), **Likely** (strong evidence, one step unverified), or **Needs verification** (depends on something outside the repository).

@@ -66,6 +66,10 @@ One Markdown report, including:
 - A release verdict: **ready**, **ready with conditions**, or **not ready**
 - Every finding that blocks the release
 - A fixed severity scale (Critical, High, Medium, Low) and a separate confidence level for each finding, so reports from different tools can be compared
+- A file inventory built by command, with every part of the codebase marked analyzed or not analyzed
+- An endpoint table: every route with its authentication, authorization, and rate limit status, with no sampling
+- A check ledger: one row per check, with the searches and commands behind each result. "No issue found" without evidence counts as not checked
+- A final self-check that sends the audit back to fill any gap before the verdict
 - Application coverage and known limitations
 - Security findings with severity, code references, and impact
 - A full state machine inventory, with transition tables and Mermaid diagrams
@@ -168,6 +172,8 @@ Issues and pull requests are welcome, especially checks that are missing for a s
 2. **State machine analizi:** Status alanlarına, flag'lere, job'lara ve event'lere dağılmış tüm durum akışlarını bulur; korumasız geçişleri, çıkmaz akışları, race condition'ları ve tekrar işlenen event'leri raporlar.
 
 **Sonuç:** Yayın kararı (hazır, koşullu hazır, hazır değil), yayını engelleyen bulgular, kod referansları ve önceliklendirilmiş bir yol haritası içeren tek bir Markdown raporu. Her bulgu sabit bir ciddiyet ölçütüyle (Critical, High, Medium, Low) ve ayrı bir güven seviyesiyle işaretlenir. Secret değerleri raporda maskelenir.
+
+**Kapsam kontrolü:** Üstünkörü taramayı ve atlanan kısımları görünür kılmak için skill şunları zorunlu tutar: komutla çıkarılan dosya envanteri (her bölüm "incelendi" ya da "incelenmedi, nedeni" ile işaretlenir), örnekleme yapılmadan her route için kimlik doğrulama, yetkilendirme ve rate limit tablosu, kritik konular için tüm kodda arama ve sonuç sayıları, her kontrol için kanıtıyla bir satır (kanıtsız "sorun yok" kabul edilmez) ve rapordan önce eksikleri tamamlayan bir öz denetim.
 
 **Hızlı mod:** "Hızlı yayın öncesi kontrol yap" dersen yalnızca güvenlik aşaması çalışır, state machine analizi atlanır.
 

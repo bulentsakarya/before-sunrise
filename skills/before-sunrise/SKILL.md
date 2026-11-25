@@ -27,6 +27,59 @@ A large codebase can exceed what you can hold in context at once. Do not let the
 - Work through the codebase area by area, and record each area as covered in the report before moving to the next.
 - If you cannot finish, say exactly which areas were covered and which were not.
 
+# Coverage and Evidence
+
+A shallow or partial audit is the main way this skill fails. These rules make every gap visible in the report. Follow them in both modes.
+
+## File Inventory
+
+Before any check, build the inventory with a command, not from memory or impression: use the version control file list (such as `git ls-files`), or a recursive directory listing if there is no version control. Group the files by top-level directory and module, with file counts. Leave out generated, vendored-by-package-manager, and binary files, and list what you left out and why.
+
+Put the inventory in the report. By the end, every group must be marked **Analyzed** or **Not analyzed** with a reason. A group cannot simply be missing.
+
+## Required Searches
+
+Reading files can miss things; a search over the whole codebase cannot. Run these searches with the stack's own tools and record, for each one, the exact command or pattern, the number of matches, and how the matches were reviewed. Adapt the patterns to the languages in use.
+
+- Secrets in the current files: common key and token formats, `password`, `secret`, `token`, `api_key`, private key headers, and connection strings.
+- Secrets in the full version control history, for example with `git log -p` filtered by the same patterns, and the list of environment or key files ever committed.
+- Dynamic code execution and obfuscation: `eval`, dynamic function calls, shell execution, and base64 or hex decoding.
+- Outbound network calls: HTTP client calls and hardcoded external URLs and domains.
+- Raw queries and string-built queries.
+- Unescaped output in templates.
+- AI provider SDKs, AI API endpoints, and AI gateways.
+- Payment provider SDKs, payment webhooks, and plan, price, coupon, credit, quota, and usage fields.
+- Debug flags, test routes, and default credentials.
+
+If a search cannot be run, record that as a coverage limitation.
+
+## Endpoint Inventory
+
+List every route, endpoint, and handler from the framework's own route list or route definitions, including API routes, webhooks, admin routes, and anything registered by packages. Do not sample.
+
+For each one, record in a table: method and path, handler, authentication, authorization (policy, role, or ownership check), and rate limit. Mark each value **Yes**, **No**, or **Unclear**. Every **No** or **Unclear** on a route that needs protection is a finding or needs verification.
+
+For systems without routes (desktop, CLI, background workers), list the equivalent entry points instead: commands, message handlers, IPC handlers, and scheduled tasks.
+
+## Check Ledger
+
+Keep a ledger with one row for every bullet in every Phase 1 section, and one row for each Phase 2 step. In a quick audit, mark the Phase 2 rows **Not run (quick audit)**. Each row has:
+
+- The check, by section number and a short name.
+- The result: **Issue found**, **No issue found**, or **Does not apply**.
+- The evidence: the commands or searches run, the files read, and the match counts.
+
+**No issue found** requires evidence. Without evidence, the result is **Not checked**, which counts as a coverage gap. **Does not apply** requires a one-line reason.
+
+## Final Self-Check
+
+Before writing the final report:
+
+1. Compare the ledger with this skill and add any missing row.
+2. Find every row marked **Not checked** or without evidence, go back, and complete it.
+3. Find every inventory group marked **Not analyzed**, and analyze it or state why it cannot be analyzed.
+4. If anything still cannot be completed, list it in the Executive Summary as a coverage gap. A release verdict of **ready** is not allowed while a check that could block the release is **Not checked**.
+
 # Phase 1: Security and Release Readiness
 
 If a check does not apply to this system, say so briefly instead of skipping it silently.
@@ -228,15 +281,15 @@ Produce a structured Markdown report containing:
 
 ### A. Executive Summary
 
-Overall findings, architectural observations, and major risks. Give a release verdict (ready, ready with conditions, or not ready) and list every finding that blocks the release.
+Overall findings, architectural observations, and major risks. Give a release verdict (ready, ready with conditions, or not ready) and list every finding that blocks the release. List every coverage gap: inventory groups not analyzed and checks not checked.
 
 ### B. Application Coverage
 
-All discovered modules and subsystems, including which areas were analyzed and any coverage limitations.
+The file inventory, with every group marked **Analyzed** or **Not analyzed** and a reason, plus all discovered modules and subsystems and any coverage limitations.
 
 ### C. Security and Release Readiness Findings
 
-Results for each Phase 1 area, with severity and confidence (see Severity Scale), code references, impact, and recommended solutions. Mask all secret values.
+Results for each Phase 1 area, with severity and confidence (see Severity Scale), code references, impact, and recommended solutions. Mask all secret values. Include the endpoint inventory table and the results of the required searches.
 
 ### D. State Machine Inventory
 
@@ -277,6 +330,10 @@ Prioritized recommendations from both phases, divided into:
 ### J. Test Coverage Recommendations
 
 Identify missing or insufficient tests for important transitions, invalid transitions, concurrency, failure recovery, cross-module consistency, and security controls.
+
+### K. Check Ledger
+
+The full ledger described in Coverage and Evidence, with a summary line: how many checks found an issue, found no issue, do not apply, and were not checked.
 
 # Important Constraints
 

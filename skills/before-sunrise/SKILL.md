@@ -1,6 +1,6 @@
 ---
 name: "before-sunrise"
-description: "Use before releasing a system to production: read-only audit of security (secrets, rate limits, access control, AI usage, billing), purchased or third-party code, and state machines. Triggers: pre-release audit, production readiness, yayın öncesi kontrol, canlıya almadan önce."
+description: "Use before releasing a system to production: read-only audit of security (secrets, rate limits, access control, hidden behavior and backdoors, AI usage, billing) and state machines. Triggers: pre-release audit, production readiness, yayın öncesi kontrol, canlıya almadan önce."
 ---
 
 # Before Sunrise: Pre-Release Audit
@@ -102,11 +102,11 @@ Apply this section only when the system includes a mobile or desktop client.
 - Check that deep links, custom URL schemes, and exported components validate their input and cannot trigger sensitive actions unauthenticated.
 - Check whether older client versions keep working or can be forced to update when the API changes.
 
-## 1.9 Third-Party and Purchased Code
+## 1.9 Hidden Behavior and Backdoors
 
-Apply this section when the system is, or includes, code bought from a marketplace (such as CodeCanyon), a template, a starter kit, or code from an unknown author. Also apply it to vendored code copied into the repository.
+Apply this section to every audit and to the whole codebase, including vendored code copied into the repository. Do not wait to be told where the code came from: purchased scripts, templates, starter kits, AI-generated code, and code written in-house can all contain these problems.
 
-- Search for outbound calls to the author's or vendor's servers: license checks, update checks, telemetry, or analytics. Report what data each call sends and whether it can be turned off. A call that sends user data, configuration, or secrets is critical.
+- Search for outbound calls to servers the system does not need for its documented features: license checks, update checks, telemetry, analytics, or calls to an author's or vendor's domain. Report what data each call sends and whether it can be turned off. A call that sends user data, configuration, or secrets is critical.
 - Search for obfuscated or encoded code: `eval`, dynamic code execution, base64 or hex decoding followed by execution, packed or minified server-side code, and encrypted source files.
 - Check for remote code or configuration loading: code that downloads and runs scripts, plugins, or settings from an external URL at runtime.
 - Check seed data, installers, and migrations for default admin users, demo accounts, known passwords, and test API keys that would reach production.
